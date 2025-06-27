@@ -33,7 +33,7 @@
   "scripts": {
     "build": "tsc -b tsconfig.src.json",
     "test": "vitest",
-    "format": "biome check --write **/*.ts",
+    "format": "biome check --write --unsafe **/*.ts",
     "lint": "biome check **/*.ts",
     "check": "tsc -b tsconfig.json"
   },
