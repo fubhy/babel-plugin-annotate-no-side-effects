@@ -1,3 +1,4 @@
+import { types as t } from "@babel/core";
 import { declare } from "@babel/helper-plugin-utils";
 import type { Binding } from "@babel/traverse";
 
