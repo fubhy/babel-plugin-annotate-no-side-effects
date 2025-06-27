@@ -1,0 +1,54 @@
+{
+  "name": "babel-plugin-annotate-no-side-effects",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Babel plugin for annotating pure function declarations.",
+  "author": "Sebastian Lorenz <fubhy@fubhy.com> (https://github.com/fubhy)",
+  "license": "MIT",
+  "homepage": "https://github.com/fubhy/babel-plugin-annotate-no-side-effects",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fubhy/babel-plugin-annotate-no-side-effects.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fubhy/babel-plugin-annotate-no-side-effects/issues"
+  },
+  "keywords": [
+    "babel",
+    "plugin",
+    "pure",
+    "side-effects"
+  ],
+  "files": [
+    "lib"
+  ],
+  "main": "./lib/index.js",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "tsc -b tsconfig.src.json",
+    "test": "vitest",
+    "format": "biome format --write **/*.ts",
+    "lint": "biome check **/*.ts",
+    "check": "tsc -b tsconfig.json"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.27.7",
+    "@babel/helper-plugin-utils": "^7.27.1",
+    "@babel/traverse": "^7.27.7",
+    "@biomejs/biome": "^2.0.6",
+    "@types/babel__core": "^7.20.5",
+    "@types/babel__helper-plugin-utils": "^7.10.3",
+    "@types/babel__traverse": "^7.20.7",
+    "@types/node": "^24.0.6",
+    "babel-plugin-tester": "^12.0.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  },
+  "packageManager": "pnpm@9.15.4+sha512.b2dc20e2fc72b3e18848459b37359a32064663e5627a51e4c74b2c29dd8e8e0491483c3abb40789cfd578bf362fb6ba8261b05f0387d76792ed6e23ea3b1b6a0"
+}
