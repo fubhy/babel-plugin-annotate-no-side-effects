@@ -8,13 +8,17 @@ export default declare(({ types: t }) => {
     if (!node) {
       return;
     }
-    if (!(node.leadingComments ?? []).some((comment) => /[@#]__NO_SIDE_EFFECTS__/.test(comment.value))) {
+
+    // Skip manually annotated nodes and those that are annotated with `__SIDE_EFFECTS__` (opt-out).
+    const comment = (node.leadingComments ?? [])
+    const skip = comment.some((comment) => /[@#]__(?:NO_)?SIDE_EFFECTS__/.test(comment.value))
+    if (!skip) {
       t.addComment(node, "leading", "#__NO_SIDE_EFFECTS__");
     }
   };
 
-  const annotateObjectMethods = (objectExpression: t.ObjectExpression) => {
-    objectExpression.properties.forEach((prop) => {
+  const annotateObjectMethods = (expression: t.ObjectExpression) => {
+    expression.properties.forEach((prop) => {
       if (t.isObjectProperty(prop)) {
         if (t.isFunction(prop.value)) {
           addAnnotation(prop.value);
@@ -27,8 +31,8 @@ export default declare(({ types: t }) => {
     });
   };
 
-  const annotateClassMethods = (classDeclaration: t.ClassExpression | t.ClassDeclaration) => {
-    classDeclaration.body.body.forEach((member) => {
+  const annotateClassMethods = (declaration: t.ClassExpression | t.ClassDeclaration) => {
+    declaration.body.body.forEach((member) => {
       if (t.isClassMethod(member)) {
         addAnnotation(member);
       } else if (t.isClassProperty(member) && t.isFunction(member.value)) {
@@ -59,14 +63,15 @@ export default declare(({ types: t }) => {
     name: "annotate-no-side-effects",
     visitor: {
       ExportNamedDeclaration(path) {
-        const { declaration, specifiers } = path.node;
-        if (t.isFunctionDeclaration(declaration)) {
+        if (t.isFunctionDeclaration(path.node.declaration)) {
           addAnnotation(path.node);
-        } else if (t.isClassDeclaration(declaration)) {
-          annotateClassMethods(declaration);
-        } else if (t.isVariableDeclaration(declaration)) {
-          declaration.declarations.forEach((declarator) => {
-            if (t.isFunctionExpression(declarator.init) || t.isArrowFunctionExpression(declarator.init)) {
+        } else if (t.isClassDeclaration(path.node.declaration)) {
+          annotateClassMethods(path.node.declaration);
+        } else if (t.isVariableDeclaration(path.node.declaration)) {
+          path.node.declaration.declarations.forEach((declarator) => {
+            if (t.isFunctionExpression(declarator.init)) {
+              addAnnotation(declarator.init);
+            } else if (t.isArrowFunctionExpression(declarator.init)) {
               addAnnotation(declarator.init);
             } else if (t.isObjectExpression(declarator.init)) {
               annotateObjectMethods(declarator.init);
@@ -74,31 +79,30 @@ export default declare(({ types: t }) => {
               annotateClassMethods(declarator.init);
             }
           });
-        } else if (!declaration && specifiers.length !== 0) {
-          specifiers
-            .filter((specifier) => t.isExportSpecifier(specifier))
-            .forEach((specifier) => {
-              const binding = path.scope.getBinding(specifier.local.name);
-              if (binding) {
-                annotateBinding(binding);
-              }
-            });
+        } else if (!path.node.declaration && path.node.specifiers.length !== 0) {
+          path.node.specifiers.filter((specifier) => t.isExportSpecifier(specifier)).forEach((specifier) => {
+            const binding = path.scope.getBinding(specifier.local.name);
+            if (binding) {
+              annotateBinding(binding);
+            }
+          });
         }
       },
       ExportDefaultDeclaration(path) {
-        const { declaration } = path.node;
-        if (t.isFunctionDeclaration(declaration)) {
+        if (t.isFunctionDeclaration(path.node.declaration)) {
           addAnnotation(path.node);
-        } else if (t.isClassDeclaration(declaration)) {
-          annotateClassMethods(declaration);
-        } else if (t.isFunctionExpression(declaration) || t.isArrowFunctionExpression(declaration)) {
-          addAnnotation(declaration);
-        } else if (t.isClassExpression(declaration)) {
-          annotateClassMethods(declaration);
-        } else if (t.isObjectExpression(declaration)) {
-          annotateObjectMethods(declaration);
-        } else if (t.isIdentifier(declaration)) {
-          const binding = path.scope.getBinding(declaration.name);
+        } else if (t.isFunctionExpression(path.node.declaration)) {
+          addAnnotation(path.node.declaration);
+        } else if (t.isArrowFunctionExpression(path.node.declaration)) {
+          addAnnotation(path.node.declaration);
+        } else if (t.isClassDeclaration(path.node.declaration)) {
+          annotateClassMethods(path.node.declaration);
+        } else if (t.isClassExpression(path.node.declaration)) {
+          annotateClassMethods(path.node.declaration);
+        } else if (t.isObjectExpression(path.node.declaration)) {
+          annotateObjectMethods(path.node.declaration);
+        } else if (t.isIdentifier(path.node.declaration)) {
+          const binding = path.scope.getBinding(path.node.declaration.name);
           if (binding) {
             annotateBinding(binding);
           }

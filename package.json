@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-annotate-no-side-effects",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Babel plugin for annotating pure function declarations.",
   "author": "Sebastian Lorenz <fubhy@fubhy.com> (https://github.com/fubhy)",
